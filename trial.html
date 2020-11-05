@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>Titanic</head>
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<body>
+<script>
+
+
+
+// set the dimensions and margins of the graph
+var margin = {
+    top: 10,
+    right: 30,
+    bottom: 30,
+    left: 60
+  },
+  width = 460 - margin.left - margin.right,
+  height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform",
+    "translate(" + margin.left + "," + margin.top + ")");
+
+//Read the data
+d3.csv("https://gist.githubusercontent.com/michhar/2dfd2de0d4f8727f873422c5d959fff5/raw/fa71405126017e6a37bea592440b4bee94bf7b9e/titanic.csv", function(rawData) {
+  // All values are strings here, so we need to parse some of them.
+  // You can do that using `+x` or `Number(x)`, where `x = "123"`
+  const data = rawData.map(function(d) {
+    return {
+      age: Number(d.Age),
+      // cabin: d.Cabin,
+      // embarked: e.Embarked,
+      fare: Number(d.Fare),
+      // name: d.Name,
+      // parch: Number(d.Parch),
+      // passengerId: Number(d.PassengerId)
+      // pclass: Number(Pclass),
+      sex: d.Sex,
+      // sibSp: Number(d.SibSp),
+      survived: d.Survived === "1"
+      // ticket: d.Ticket,
+    };
+  });
+
+  // Add X axis
+  var x = d3.scaleLinear()
+    .domain([0, 80])
+    .range([0, width]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x))
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 600])
+    .range([height, 0]);
+  svg.append("g")
+  .call(d3.axisLeft(y))
+
+  // Add dots
+  svg.append('g')
+    .selectAll("path")
+    .data(data)
+    .enter()
+    .append("path")
+    .attr("transform", function(d) {
+      return "translate(" + [x(d.age), y(d.fare)] + ")";
+    })
+    .attr("d", function(d) {
+      const path = d3.path();
+      const shape = d.sex == "female" ? d3.symbolCircle : d3.symbolSquare;
+      shape.draw(path, 8);
+      return path.toString();
+    })
+    
+    .style("fill-opacity", function(d) {
+      return d.survived ? "0.4" : "0.6";
+    })
+    // Add Text Labels
+    svg.selectAll("text")
+                .data(data_scatter)
+                .enter()
+                .append("text")
+                .text(function(d) {
+                    return "translate(" + [x(d.age), y(d.fare)] + ")";
+                })
+                .attr("x", function(d) {
+                    return xScale(d.age);  // Returns scaled location of x
+                })
+                .attr("y", function(d) {
+                    return yScale(d.fare);  // Returns scaled circle y
+                })
+                .attr("font_family", "sans-serif")  // Font type
+                .attr("font-size", "11px")  // Font size
+                .attr("fill", "darkgreen");   // Font color
+
+})
+
+</script>
+</body>
